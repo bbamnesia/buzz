@@ -17,6 +17,7 @@ import { toast } from "sonner";
 
 import { relayClient } from "@/shared/api/relayClient";
 import { isRelayDependentQuery } from "@/shared/api/relayQueryInvalidation";
+import { buildReconnectBackstopHandler } from "@/shared/api/relayReconnectBackstop";
 import { relayReconnectController } from "@/shared/api/relayReconnectController";
 
 function buildDeps(onSuccess: () => void, onBackstop: () => void) {
@@ -71,9 +72,10 @@ export function useReconnectRelay(): {
     }, 0);
   }, [queryClient]);
 
-  onBackstopRef.current = React.useCallback(() => {
-    toast("Still trying to reconnect — check your network.");
-  }, []);
+  onBackstopRef.current = React.useMemo(
+    () => buildReconnectBackstopHandler({ toast }),
+    [],
+  );
 
   const reconnect = React.useCallback(async () => {
     const deps = buildDeps(

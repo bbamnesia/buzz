@@ -21,6 +21,22 @@
  *    subscription, no `keepAliveRequested` from `preconnect()` → don't
  *    keep an idle socket.
  */
+/** Inputs for deciding whether an imminent connect should consume a pending reconnect timer. */
+export type PendingReconnectTimerInputs = {
+  hasConnectPromise: boolean;
+  hasLiveSocket: boolean;
+  hasPendingReconnect: boolean;
+};
+
+/** Whether a call that is about to start connect() should clear the pending reconnect timer. */
+export function shouldClearPendingReconnectBeforeConnect(
+  inputs: PendingReconnectTimerInputs,
+): boolean {
+  if (inputs.hasConnectPromise) return false;
+  if (inputs.hasLiveSocket) return false;
+  return inputs.hasPendingReconnect;
+}
+
 export type RelayReconnectInputs = {
   terminal: boolean;
   hasPendingReconnect: boolean;

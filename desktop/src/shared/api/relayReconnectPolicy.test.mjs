@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  shouldClearPendingReconnectBeforeConnect,
   shouldRefuseConnect,
   shouldScheduleReconnect,
 } from "./relayReconnectPolicy.ts";
@@ -80,4 +81,39 @@ test("keep-alive alone is enough to schedule", () => {
 test("shouldRefuseConnect mirrors terminal", () => {
   assert.equal(shouldRefuseConnect({ terminal: false }), false);
   assert.equal(shouldRefuseConnect({ terminal: true }), true);
+});
+
+test("clear pending reconnect only when a fresh connect will start", () => {
+  assert.equal(
+    shouldClearPendingReconnectBeforeConnect({
+      hasConnectPromise: false,
+      hasLiveSocket: false,
+      hasPendingReconnect: true,
+    }),
+    true,
+  );
+  assert.equal(
+    shouldClearPendingReconnectBeforeConnect({
+      hasConnectPromise: true,
+      hasLiveSocket: false,
+      hasPendingReconnect: true,
+    }),
+    false,
+  );
+  assert.equal(
+    shouldClearPendingReconnectBeforeConnect({
+      hasConnectPromise: false,
+      hasLiveSocket: true,
+      hasPendingReconnect: true,
+    }),
+    false,
+  );
+  assert.equal(
+    shouldClearPendingReconnectBeforeConnect({
+      hasConnectPromise: false,
+      hasLiveSocket: false,
+      hasPendingReconnect: false,
+    }),
+    false,
+  );
 });

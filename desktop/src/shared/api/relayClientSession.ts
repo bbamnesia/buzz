@@ -43,6 +43,7 @@ import {
 import { requestHistoryGated } from "@/shared/api/relayGateBoundary";
 import { RelayConnectionStateEmitter } from "@/shared/api/relayConnectionStateEmitter";
 import {
+  shouldClearPendingReconnectBeforeConnect,
   shouldRefuseConnect,
   shouldScheduleReconnect,
 } from "@/shared/api/relayReconnectPolicy";
@@ -516,8 +517,15 @@ export class RelayClient {
       return;
     }
 
-    if (this.reconnectTimeout) {
-      window.clearTimeout(this.reconnectTimeout);
+    const reconnectTimeout = this.reconnectTimeout;
+    if (
+      shouldClearPendingReconnectBeforeConnect({
+        hasConnectPromise: this.connectPromise !== null,
+        hasLiveSocket: this.wsId !== null,
+        hasPendingReconnect: Boolean(reconnectTimeout),
+      })
+    ) {
+      window.clearTimeout(reconnectTimeout as number);
       this.reconnectTimeout = null;
     }
 
